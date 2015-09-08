@@ -136,19 +136,19 @@ int main(int argc, char** argv)
                 }
             } else if(event.type == sf::Event::MouseMoved) {
                 if(pressed) click2 = sf::Mouse::getPosition(window);
-                if(click1.x > click2.x) {
-                    auto i = click2.x;
-                    click2.x = click1.x;
-                    click1.x = i;
-                }
-                if(click1.y > click2.y) {
-                    auto i = click2.y;
-                    click2.y = click1.y;
-                    click1.y = i;
-                }
             } else if(event.type == sf::Event::MouseButtonReleased) {
                 if(event.mouseButton.button == sf::Mouse::Right) {
                     pressed = false;
+                    if(click1.x > click2.x) {
+                        auto i = click2.x;
+                        click2.x = click1.x;
+                        click1.x = i;
+                    }
+                    if(click1.y > click2.y) {
+                        auto i = click2.y;
+                        click2.y = click1.y;
+                        click1.y = i;
+                    }
                 }
             }
         }
