@@ -39,13 +39,29 @@ void drawBox(sf::RenderTarget& window, sf::Vector2i a, sf::Vector2i b, sf::Color
     window.draw(line, 5, sf::LinesStrip);
 }
 
-void addRandoms(DMUtils::QuadTree<sf::Vector2f>& l, int count) {
-    float x,y;
+template <typename T>
+void drawBox(sf::RenderTarget& window, const DMUtils::physics::AABB<T>& a, const sf::Color& c = sf::Color::Green) {
+
+    sf::Vertex line[] = {
+        sf::Vertex(sf::Vector2f(a.left,a.top), c),
+        sf::Vertex(sf::Vector2f(a.left + a.width,a.top), c),
+        sf::Vertex(sf::Vector2f(a.left + a.width,a.top + a.height), c),
+        sf::Vertex(sf::Vector2f(a.left,a.top + a.height), c),
+        line[0]
+    };
+
+    window.draw(line, 5, sf::LinesStrip);
+}
+
+void addRandoms(DMUtils::QuadTree<DMUtils::physics::AABB<float>>& l, int count) {
+    float x,y,w,h;
     for(int i=0;i<count;++i) {
         x = rand() % WIDTH;
         y = rand() % HEIGHT;
+        w = rand() % ((int)x - WIDTH);
+        h = rand() % ((int)y - HEIGHT);
 
-        l.emplace(x,y,x,y);
+        l.emplace(DMUtils::physics::AABB<float>(x,y,w,h),x,y,w,h);
         ++n;
     }
 }
@@ -78,7 +94,9 @@ int main(int argc, char** argv)
     bool pressed = false;
     bool collision = false;
     int col_size = 0;
-    DMUtils::QuadTree<sf::Vector2f> points(WIDTH,HEIGHT);
+
+    DMUtils::QuadTree<DMUtils::physics::AABB<float>> points(WIDTH,HEIGHT);
+
     while (window.isOpen()) {
         sf::Event event;
         while (window.pollEvent(event)) {
@@ -127,7 +145,8 @@ int main(int argc, char** argv)
                 }
                 if(event.mouseButton.button == sf::Mouse::Left) {
                     sf::Vector2i mouse = sf::Mouse::getPosition(window);
-                    points.emplace(mouse.x,mouse.y,mouse.x,mouse.y);
+                    DMUtils::physics::AABB<float> a(mouse.x,mouse.y,rand()%50,rand()%50);
+                    points.emplace(a,a.left,a.top,a.width,a.height);
                     ++n;
                 }
                 if(event.mouseButton.button == sf::Mouse::Right) {
@@ -156,11 +175,11 @@ int main(int argc, char** argv)
         window.clear();
 
         for(auto& p : points.data())
-            drawCross(window,*p);
+            drawBox(window,*p);
         if(collision) {
             auto col = points.query(DMUtils::physics::AABB<float>(click1.x,click1.y,click2.x - click1.x,click2.y - click1.y));
             for(auto& n : col) {
-                drawCross(window,*n.data.get(),sf::Color::Blue);
+                drawBox(window,*n.data.get(),sf::Color::Blue);
             }
             col_size = col.size();
         }
