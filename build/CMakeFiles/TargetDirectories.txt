@@ -1,1 +1,0 @@
-D:/prive/GitRepo/QuadTreeTester/build/src/CMakeFiles/main.dir
