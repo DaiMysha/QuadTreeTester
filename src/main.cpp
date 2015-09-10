@@ -14,6 +14,8 @@
 
 int n=0;
 
+std::list<typename DMUtils::physics::AABB<float>> aabb_list;
+
 void drawCross(sf::RenderTarget& window, const sf::Vector2f& p, const sf::Color& c = sf::Color::Green, float size = 5.0f) {
 
     sf::Vertex line[] = {
@@ -53,6 +55,14 @@ void drawBox(sf::RenderTarget& window, const DMUtils::physics::AABB<T>& a, const
     window.draw(line, 5, sf::LinesStrip);
 }
 
+void addPoint(DMUtils::QuadTree<DMUtils::physics::AABB<float>>& l, float x, float y, float w, float h) {
+    DMUtils::physics::AABB<float> box = DMUtils::physics::AABB<float>(x,y,w,h);
+    aabb_list.push_front(box);
+
+    l.insert(*aabb_list.begin(),&*aabb_list.begin());
+    ++n;
+}
+
 void addRandoms(DMUtils::QuadTree<DMUtils::physics::AABB<float>>& l, int count) {
     float x,y,w,h;
     for(int i=0;i<count;++i) {
@@ -61,8 +71,7 @@ void addRandoms(DMUtils::QuadTree<DMUtils::physics::AABB<float>>& l, int count) 
         w = rand() % ((int)x - WIDTH);
         h = rand() % ((int)y - HEIGHT);
 
-        l.emplace(DMUtils::physics::AABB<float>(x,y,w,h),x,y,w,h);
-        ++n;
+        addPoint(l,x,y,w,h);
     }
 }
 
@@ -145,9 +154,8 @@ int main(int argc, char** argv)
                 }
                 if(event.mouseButton.button == sf::Mouse::Left) {
                     sf::Vector2i mouse = sf::Mouse::getPosition(window);
-                    DMUtils::physics::AABB<float> a(mouse.x,mouse.y,rand()%50,rand()%50);
-                    points.emplace(a,a.left,a.top,a.width,a.height);
-                    ++n;
+                    addPoint(points,mouse.x,mouse.y,rand()%50,rand()%50);
+
                 }
                 if(event.mouseButton.button == sf::Mouse::Right) {
                     pressed = true;
@@ -179,7 +187,7 @@ int main(int argc, char** argv)
         if(collision) {
             auto col = points.query(DMUtils::physics::AABB<float>(click1.x,click1.y,click2.x - click1.x,click2.y - click1.y));
             for(auto& n : col) {
-                drawBox(window,*n.data.get(),sf::Color::Blue);
+                drawBox(window,*n.data,sf::Color::Blue);
             }
             col_size = col.size();
         }
@@ -199,6 +207,7 @@ int main(int argc, char** argv)
             std::ostringstream str;
             str << (fps*2) << "\n";
             str << "n : " << points.size();
+            str << "\nd : " << points.depth();
             if(collision) str << "\ncol : " << col_size;
             text.setString(str.str());
         }
