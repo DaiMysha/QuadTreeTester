@@ -8,5 +8,6 @@ set(FILES_SRC
 	${SRCROOT}/main.cpp
 )
 
-add_executable(main main.cpp)
+add_executable(main ${FILES_HEADER} ${FILES_SRC})
+add_executable(bench benchmark.cpp)
 target_link_libraries(main ${LIBS})
